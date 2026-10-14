@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SR Memo</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0b4aa8;--navy2:#0a3a86;--blue:#1d6fe0;--ink:#0f2f5c;--line:#8fb7ea;--soft:#e6f0fd;--soft2:#f1f7ff;--bg:#f1f6fd;--danger:#c0392b;--muted:#5b79a0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Hind Siliguri","Noto Sans Bengali","Kalpurush",sans-serif;font-size:16px}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* ===== Header ===== */
+.top{position:sticky;top:0;z-index:20;background:linear-gradient(135deg,var(--navy2),var(--navy) 55%,var(--blue));color:#fff;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 22px;border-radius:0 0 34px 34px;box-shadow:0 6px 18px rgba(11,74,168,.28)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand .logo{width:46px;height:46px;border:2px solid #fff;border-radius:12px;display:grid;place-items:center;flex-shrink:0}
+.brand .logo svg{width:28px;height:28px}
+.brand h1{margin:0;font-size:26px;line-height:1.1;font-weight:700;letter-spacing:.2px}
+.brand p{margin:2px 0 0;font-size:12px;opacity:.92}
+.pill{background:#fff;color:var(--navy2);border-radius:14px;padding:9px 12px;font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.15)}
+
+/* ===== Pages ===== */
+.page{display:none;max-width:760px;margin:-10px auto 0;padding:0 12px 190px}
+.page.active{display:block}
+.sheet,.panel{background:#fff;border:1px solid var(--soft);border-radius:18px;padding:14px;box-shadow:0 4px 14px rgba(15,47,92,.07);margin-bottom:12px}
+.panel h2{margin:0 0 10px;font-size:18px}
+.sec-title{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:20px;font-weight:700;color:var(--navy2)}
+.sec-title:after{content:"";flex:1;height:2px;background:linear-gradient(90deg,var(--line),transparent)}
+
+/* ===== Form fields ===== */
+.lbl{display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:6px;color:var(--ink)}
+.lbl svg{color:var(--navy);width:20px;height:20px}
+.fld{margin-bottom:12px}
+.row2{display:flex;gap:10px;align-items:flex-start}
+.row2 .grow{flex:1;min-width:0}.row2 .date{flex:0 0 150px}
+input,textarea,select{font:inherit;color:var(--ink);border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:10px 12px;min-height:46px;width:100%}
+input::placeholder,textarea::placeholder{color:#8aa6c9}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--blue);outline-offset:1px}
+.inline{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.inline .lbl{margin:0;flex:0 0 auto;min-width:92px}
+.inline input{flex:1;min-width:0}
+
+/* ===== Memo table ===== */
+.tablewrap{overflow-x:auto;margin:6px 0;border:1.5px solid var(--line);border-radius:14px}
+.memo-table{width:100%;border-collapse:collapse;min-width:440px}
+.memo-table th{background:linear-gradient(180deg,var(--blue),var(--navy));color:#fff;padding:12px 4px;border-right:1px solid rgba(255,255,255,.35);font-weight:700}
+.memo-table td{border-right:1.5px solid var(--soft);border-bottom:1px solid var(--soft);padding:0;height:52px;background:#fff}
+.memo-table th:last-child,.memo-table td:last-child{border-right:0}
+.memo-table tbody tr:last-child td{border-bottom:0}
+.memo-table td input{border:0;border-radius:0;background:transparent;min-height:52px}
+.memo-table td input:focus{outline-offset:-2px}
+.c-no{width:52px}.c-qty{width:100px}.c-price{width:120px}
+td.no{text-align:center;position:relative;background:var(--soft)!important;font-weight:700;color:var(--navy2)}
+td.no button{position:absolute;right:0;top:0;border:0;background:none;color:var(--danger);font-size:16px;line-height:1;padding:4px 5px}
+td.price .tot{display:block;text-align:right;padding:2px 10px 0;font-weight:700;font-size:15px;min-height:20px}
+td.price input{min-height:28px;padding:2px 10px;text-align:right;font-size:13px;color:#4a6a92}
+td.qty input{text-align:center;min-height:30px;padding:2px 6px;font-weight:600}
+td.qty select{min-height:22px;height:22px;padding:0 2px;border:0;border-radius:0;background:var(--soft2);color:var(--navy);font-size:12px;font-weight:600;text-align:center;text-align-last:center}
+td.no button.dup{top:auto;bottom:1px;right:1px;color:#fff;background:var(--blue);width:20px;height:20px;border-radius:6px;font-size:16px;font-weight:700;display:grid;place-items:center;padding:0}
+[hidden]{display:none!important}
+/* floating commission sheet */
+.cpanel{position:fixed;top:0;left:0;right:0;bottom:0;z-index:60}
+.cback{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(15,47,92,.45)}
+.csheet{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:760px;max-height:90vh;overflow-y:auto;background:#fff;border-radius:22px 22px 0 0;padding:14px 14px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(15,47,92,.3);animation:sheetin .2s ease-out}
+@keyframes sheetin{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.chead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.cdate{color:var(--muted);font-size:13px;margin-top:2px}
+.chead .sec-title:after{display:none}
+.csheet .memo-table{min-width:0}
+.csheet .memo-table th{padding:9px 3px;font-size:13px}
+.csheet .memo-table td{padding:6px 5px;font-size:13.5px}
+.cbtns{display:flex;gap:6px;flex-shrink:0}
+body.noscroll{overflow:hidden}
+.comtotal{width:100%;display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;padding:10px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--soft2);color:var(--ink);font:600 15px inherit;font-family:inherit;min-height:48px}
+.comtotal b{font-size:19px}
+.pos{color:#1e7a38;font-weight:700}.neg{color:var(--danger);font-weight:700}
+.com-h{margin:14px 0 6px;font-size:16px;color:var(--navy2)}
+.com-table td:nth-child(n+2){text-align:right}
+.suggest em{font-style:normal;font-weight:700;color:var(--navy)}
+.suggest small{color:var(--muted)}
+.sfabs{position:fixed;right:14px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:25;display:none;flex-direction:column;align-items:flex-end;gap:10px}
+body[data-page=summary] .sfabs{display:flex}
+/* summary page in view mode: plain text, no editing controls */
+.sum-view .addp,.sum-view .rp,.sum-view .delr,.sum-view .sum-tools{display:none!important}
+.sum-view .pt{background:none;border:0;margin-right:8px;padding:0}
+.sum-view .sum-table input,.sum-view select.su{pointer-events:none;-webkit-appearance:none;appearance:none;opacity:1;color:var(--ink);-webkit-text-fill-color:var(--ink)}
+#page-summary .sum-table{min-width:0}
+#page-summary .sum-table th{padding:10px 2px;font-size:14px}
+#page-summary .sum-table td{padding:4px 4px}
+#page-summary .pt input.sqn{width:44px}
+#page-summary .pt select.su{min-width:48px;font-size:13px}
+#page-summary .sum-table .st input{width:70px}
+#page-summary .sum-table input.sn{min-width:70px}
+.sum-view .pt input.sqn{width:auto;min-width:0;padding:2px 2px 2px 0;text-align:left}
+.sum-view .pt select.su{min-width:0;padding:0}
+.sum-view .sum-table .st input{width:90px}
+/* editable daily summary */
+.sum-table td.sq{text-align:left}
+.sum-table input.sn{border:0;border-radius:0;background:transparent;min-height:40px;font-weight:600;padding:2px 6px}
+.pt{display:inline-flex;align-items:center;gap:2px;margin:2px 4px 2px 0;background:var(--soft2);border:1px solid var(--soft);border-radius:8px;padding:0 2px}
+.pt input.sqn{width:54px;min-height:34px;padding:2px 4px;text-align:center;border:0;border-radius:0;background:transparent;font-weight:700}
+.pt select.su{width:auto;min-width:58px;min-height:34px;border:0;border-radius:0;background:transparent;padding:0 2px;font-size:14px;color:var(--navy);font-weight:600}
+.pt .rp{border:0;background:none;color:var(--danger);font-size:16px;padding:2px 4px}
+.addp{border:1.5px dashed var(--blue);background:#fff;color:var(--navy);border-radius:8px;font:600 12px inherit;font-family:inherit;padding:4px 8px;min-height:30px}
+.sum-table .st{white-space:nowrap}
+.sum-table .st input{width:86px;text-align:right;min-height:40px;padding:2px 6px;font-weight:700;border:0;border-radius:0;background:transparent}
+.sum-table .st .delr{border:0;background:none;color:var(--danger);font-size:18px;padding:2px 4px}
+.sum-table tr.sed td:first-child{box-shadow:inset 3px 0 var(--blue)}
+.dt{position:relative}
+.dt .dtshow{pointer-events:none;background:#fff}
+.dt .dtreal{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0}
+.hr{display:flex;align-items:center;gap:8px}
+.gear{width:42px;height:42px;border-radius:14px;border:0;background:rgba(255,255,255,.18);color:#fff;display:grid;place-items:center;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+.pill{padding:8px 10px;font-size:14px}
+.btn-add{width:100%;margin:8px 0 12px;min-height:50px;border:1.8px dashed var(--blue);background:var(--soft2);color:var(--navy);border-radius:14px;font:600 16px inherit;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+
+.totbar{display:flex;align-items:center;gap:12px;background:var(--soft2);border:1.5px solid var(--soft);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.totbar .calc{width:44px;height:44px;border-radius:10px;background:var(--navy);color:#fff;display:grid;place-items:center;flex-shrink:0}
+.totbar .meta{flex:1;font-size:13px;color:var(--muted);line-height:1.5}
+.totbar .meta b{color:var(--ink)}
+.totbar .big{display:flex;align-items:center;border-radius:12px;overflow:hidden;background:#cfe3fb;font-weight:700}
+.totbar .big span{padding:10px 12px;background:#b9d6f7;font-size:17px}
+.totbar .big b{padding:10px 14px;font-size:20px;color:var(--navy2)}
+
+.foot{display:flex;gap:10px}
+.note{flex:1;position:relative;border:1.5px solid var(--line);border-radius:14px;padding-top:30px;background:#fff}
+.note .tag{position:absolute;left:12px;top:6px;font-weight:700;color:var(--navy2);display:flex;align-items:center;gap:6px}
+.note textarea{border:0;resize:none;min-height:70px}
+.sign{flex:0 0 32%;border:1.5px solid var(--line);border-radius:14px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:8px;min-height:100px;font-weight:600;font-size:14px;background:#fff}
+.sign .line{width:90%;border-top:1.5px solid var(--navy);margin-bottom:4px}
+.thanks{margin-top:14px;background:linear-gradient(135deg,var(--navy2),var(--blue));color:#fff;border-radius:14px;padding:12px;text-align:center;font-size:14px}
+.thanks i{opacity:.6;margin:0 8px;font-style:normal}
+
+/* ===== Buttons ===== */
+.btn{font:600 16px inherit;font-family:inherit;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:12px;padding:10px 14px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.primary{background:var(--navy);color:#fff}
+.btn.sm{min-height:38px;padding:5px 11px;font-size:14px}
+.btn.del{border-color:var(--danger);color:var(--danger)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.banner{background:#fff6d6;border:1px solid #e3c766;border-radius:12px;padding:10px;margin-bottom:12px}
+
+/* ===== Floating actions (memo page only) ===== */
+.fabs{position:fixed;right:14px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:25;display:none;flex-direction:column;align-items:flex-end;gap:10px}
+body[data-page=memo] .fabs{display:flex}
+.fab{border:0;color:#fff;font:700 16px inherit;font-family:inherit;display:flex;align-items:center;gap:8px;border-radius:999px;box-shadow:0 8px 20px rgba(11,74,168,.4)}
+.fab.save{background:linear-gradient(135deg,var(--blue),var(--navy2));padding:14px 20px}
+.fab.new{background:#fff;color:var(--navy);border:1.8px solid var(--navy);padding:11px 16px;font-size:15px;box-shadow:0 6px 16px rgba(15,47,92,.25)}
+.fab-menu{display:none;flex-direction:column;align-items:flex-end;gap:10px}
+.fabs.open .fab-menu{display:flex;animation:fabin .18s ease-out}
+@keyframes fabin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fab.toggle{width:54px;height:54px;justify-content:center;padding:0;background:linear-gradient(135deg,var(--blue),var(--navy2))}
+.fab.toggle svg{width:26px;height:26px;transition:transform .2s}
+.fabs.open .fab.toggle svg{transform:rotate(45deg)}
+.fab.prt{width:46px;height:46px;justify-content:center;padding:0;background:#fff;color:var(--navy);border:1.8px solid var(--navy);box-shadow:0 6px 16px rgba(15,47,92,.25)}
+
+/* ===== Bottom nav ===== */
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;display:flex;border-top:1px solid var(--soft);box-shadow:0 -6px 20px rgba(15,47,92,.12);padding-bottom:env(safe-area-inset-bottom);border-radius:20px 20px 0 0}
+.tab{flex:1;border:0;background:none;color:#7f9cc4;font:600 11.5px inherit;font-family:inherit;padding:8px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:60px;position:relative}
+.tab.active{color:var(--navy)}
+.tab.active:before{content:"";position:absolute;top:0;left:25%;right:25%;height:3px;border-radius:0 0 4px 4px;background:var(--navy)}
+
+/* ===== Lists ===== */
+.plain{margin-bottom:10px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid var(--soft)}
+.item:last-child{border-bottom:0}
+.item small{color:var(--muted);display:block}
+.item .btns{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.empty{color:var(--muted);text-align:center;padding:18px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.cards div{border:1.5px solid var(--soft);background:var(--soft2);border-radius:14px;padding:10px;font-size:14px}
+.cards b{display:block;font-size:22px;color:var(--navy2)}
+.cards div:last-child{grid-column:1/-1;background:var(--soft)}
+.sum-table td{padding:9px 10px;height:auto}
+.sum-table td:nth-child(n+2){text-align:right}
+.sum-table td:nth-child(n+3){text-align:right}
+.memo-table tfoot td{padding:9px 10px;height:auto;font-weight:700;background:var(--soft)}
+.memo-table tfoot .lbl2{text-align:right}
+.suggest{position:absolute;z-index:40;background:#fff;border:1.5px solid var(--navy);border-radius:12px;max-height:240px;overflow:auto;box-shadow:0 6px 18px rgba(15,47,92,.2)}
+.suggest div{display:flex;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--soft)}
+.toast{position:fixed;bottom:calc(150px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;z-index:50;max-width:90%}
+.pcat{color:var(--muted)}
+.seg{display:flex;gap:8px;margin-bottom:10px}
+.seg button{flex:1;font:600 15px inherit;font-family:inherit;min-height:46px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);border-radius:12px}
+.seg button.active{background:var(--navy);color:#fff}
+.localnote{font-size:13px;color:var(--muted);margin:0 0 10px}
+.filters{display:grid;gap:8px;margin-bottom:10px}
+.chg td{background:#fff6d6}
+.badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:700;background:var(--soft);white-space:nowrap}
+.badge.up{background:#fde2de;color:var(--danger)}.badge.down{background:#dcf3e1;color:#1e7a38}
+.feed-item{padding:12px 0;border-bottom:1px solid var(--soft)}
+.feed-item h3{margin:4px 0;font-size:16px}.feed-item p{margin:2px 0}.feed-item small{color:var(--muted)}
+.savedbar{display:flex;gap:8px;margin-bottom:10px}
+.savedbar .btn{flex:1}
+.sumline{background:var(--soft2);border:1.5px solid var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:6px;font-weight:600;color:var(--navy2)}
+.printonly,#printArea{display:none}
+
+/* ===== Print area (multi-memo) ===== */
+.pm{padding:10px 6px;page-break-after:always;break-after:page}
+.pm:last-child{page-break-after:auto;break-after:auto}
+.pm .ph{background:var(--navy);color:#fff;text-align:center;font-size:26px;font-weight:700;border-radius:10px;padding:8px}
+.pm .meta{margin:10px 0;line-height:1.7}
+.pm table{width:100%;border-collapse:collapse;margin:8px 0}
+.pm th{background:var(--soft);border:1px solid var(--line);padding:7px}
+.pm td{border:1px solid var(--line);padding:7px}
+.pm .sn{text-align:center;width:44px}.pm .c{text-align:center}.pm .r{text-align:right}
+.pm .gt td{font-weight:700;background:var(--soft)}
+.pm .sg{margin-top:36px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px}
+.pm .sg div{border-top:1.5px solid var(--navy);padding-top:4px;min-width:140px;text-align:center}
+.pm .nt{flex:1;border:none;min-height:30px;padding-top:0}
+
+/* one-page summary print sheet */
+.ps{width:100%;color:#000;line-height:1.3}
+.ps .ph{background:var(--navy);color:#fff;text-align:center;font-weight:700;border-radius:1.5mm;padding:.5em;font-size:1.7em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ps .pmeta{margin:.6em 0;font-weight:600}
+.ps .pcols{display:grid;gap:3mm;align-items:start}
+.ps table{width:100%;border-collapse:collapse}
+.ps th{background:var(--soft);border:.25mm solid var(--line);padding:.35em .4em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ps td{border:.25mm solid var(--line);padding:.28em .4em}
+.ps .c{text-align:center}.ps .r{text-align:right}
+.ps .ptot{display:flex;justify-content:space-between;margin-top:.6em;padding:.45em .7em;border:.3mm solid var(--navy);border-radius:1.5mm;font-weight:700;font-size:1.15em;background:var(--soft);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+/* multi-memo sheets */
+.pg{display:grid;gap:2mm;height:284mm;width:100%;page-break-after:always;break-after:page}
+.pg:last-child{page-break-after:auto;break-after:auto}
+.cm{border:.35mm solid var(--navy);border-radius:2mm;overflow:hidden;padding:1.8mm;display:flex;flex-direction:column;min-width:0;line-height:1.25;background:#fff;color:#000}
+.cm .h{background:var(--navy);color:#fff;text-align:center;font-weight:700;border-radius:1.2mm;padding:.8mm 0;font-size:1.3em;letter-spacing:.2mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cm .in{display:flex;justify-content:space-between;gap:1.5mm;margin-top:1.2mm;font-size:1.05em}
+.cm .sub{color:#222;margin-top:.4mm}
+.cm table{width:100%;border-collapse:collapse;margin-top:1.2mm}
+.cm th,.cm td{border:.25mm solid var(--line);padding:.55mm .9mm}
+.cm th{background:var(--soft);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cm .c{text-align:center}.cm .r{text-align:right}
+.cm .fl td{height:3.4mm;color:#7a93b5}
+.cm .tt{margin-top:auto;display:flex;justify-content:space-between;border-top:.3mm solid var(--navy);padding-top:.5mm;font-weight:700}
+.cm .sgn{text-align:right;margin-top:2.5mm;border-top:.25mm solid var(--navy);width:45%;margin-left:auto;text-align:center}
+@media(min-width:600px){.page{padding-bottom:170px}}
+@media print{
+  .no-print,.top,.bnav,.fabs,.suggest,.toast{display:none!important}
+  body{background:#fff}
+  .page{padding:0;max-width:none;margin:0}
+  .sheet,.panel{border:0;box-shadow:0;padding:0}
+  .memo-table th,.sec-title,.thanks,td.no,.totbar .big,.totbar .big span,.totbar .calc,.pm .ph,.pm th,.pm .gt td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  input,textarea{border:0!important;padding:4px!important}
+  select{-webkit-appearance:none;appearance:none;border:0!important}
+  td.no button{display:none!important}
+  .cpanel{display:none!important}
+  body.print-com .app{display:none!important}
+  body.print-com .cpanel{display:block!important;position:static}
+  body.print-com .cback,body.print-com .cbtns{display:none!important}
+  body.print-com .csheet{position:static;max-height:none;overflow:visible;box-shadow:none;border-radius:0;padding:0;animation:none}
+  body.print-com .cards div,body.print-com .com-table th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4;margin:6mm}
+  .tablewrap{overflow:visible}
+  .printonly{display:block;margin:0 0 8px}
+  body.print-all .app{display:none!important}
+  body.print-all #printArea{display:block}
+}
+</style>
+</head>
+<body data-page="memo">
+
+<div class="app">
+<header class="top no-print">
+  <div class="brand">
+    <div class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h5M8 17h4"/></svg></div>
+    <div><h1>SR Memo</h1><p>Better Order &nbsp;•&nbsp; Better Business</p></div>
+  </div>
+  <div class="hr"><div class="pill"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a2 2 0 002 1.6h8.1a2 2 0 002-1.5L21 8H6"/></svg><span id="pillText">বিক্রয় মেমো</span></div>
+  <button class="gear" id="gearBtn" title="সেটিংস" aria-label="সেটিংস"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3h0a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5h0a1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8v0a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button></div>
+</header>
+
+<!-- ===== Page 1: New Memo ===== -->
+<main id="page-memo" class="page active">
+  <div class="sheet" style="margin-top:14px">
+    <div class="row2">
+      <div class="grow fld">
+        <label class="lbl" for="shopName"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>দোকানের নাম :</label>
+        <input id="shopName" list="shopList" autocomplete="off" placeholder="দোকানের নাম লিখুন...">
+      </div>
+      <div class="date fld">
+        <label class="lbl" for="memoDate"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>তারিখ :</label>
+        <input id="memoDate" type="date">
+      </div>
+    </div>
+    <datalist id="shopList"></datalist>
+    <div class="inline"><label class="lbl" for="shopAddr"><svg class="i" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>ঠিকানা :</label><input id="shopAddr" autocomplete="off" placeholder="দোকানের ঠিকানা লিখুন..."></div>
+    <div class="inline"><label class="lbl" for="shopMobile"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg>মোবাইল :</label><input id="shopMobile" type="tel" inputmode="tel" autocomplete="off" placeholder="মোবাইল নম্বর লিখুন..."></div>
+  </div>
+
+  <div id="editBanner" class="banner no-print" hidden></div>
+
+  <div class="sheet">
+    <div class="tablewrap">
+      <table class="memo-table">
+        <thead><tr><th class="c-no">ক্রম</th><th>পণ্যের নাম</th><th class="c-qty">পরিমাণ</th><th class="c-price">দাম (৳)</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <button class="btn-add no-print" id="addRow"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>নতুন সারি যোগ করুন</button>
+
+    <div class="totbar">
+      <div class="calc"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg></div>
+      <div class="meta">মোট পণ্য: <b id="totItems">0</b><br>মোট পরিমাণ: <b id="totQty">0</b></div>
+      <div class="big"><span>মোট দাম</span><b id="totAmt">৳0</b></div>
+    </div>
+
+    <div class="foot">
+      <div class="note"><span class="tag"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>বিঃদ্রঃ</span><textarea id="memoNote" rows="3" placeholder="বিশেষ কিছু লিখতে চাইলে এখানে লিখুন..."></textarea></div>
+      <div class="sign"><div class="line"></div><span>স্বাক্ষর</span></div>
+    </div>
+    <div class="thanks"><i>—</i>ধন্যবাদ &nbsp;|&nbsp; আপনার ব্যবসা সফল হোক<i>—</i></div>
+  </div>
+</main>
+
+<!-- ===== Page 2: Saved Memos ===== -->
+<main id="page-saved" class="page">
+  <div class="panel" style="margin-top:14px">
+    <h2 class="sec-title">সংরক্ষিত মেমো</h2>
+    <div class="filters">
+      <div class="row2">
+        <input id="savedDate" type="date" class="grow">
+        <button class="btn" id="savedAllDates">সব তারিখ</button>
+      </div>
+      <input id="savedSearch" placeholder="দোকানের নাম দিয়ে খুঁজুন">
+    </div>
+    <div class="sumline" id="savedSum"></div>
+    <div class="savedbar">
+      <button class="btn primary" id="printAll"><svg class="i" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>সব মেমো প্রিন্ট</button>
+    </div>
+    <div id="savedList"></div>
+  </div>
+</main>
+
+<!-- ===== Page 3: Products ===== -->
+<main id="page-products" class="page">
+  <div class="panel" style="margin-top:14px">
+    <h2 id="pFormTitle">নতুন পণ্য যোগ করুন</h2>
+    <div class="fld"><label class="lbl">পণ্যের নাম</label><input id="pName" autocomplete="off"></div>
+    <div class="fld"><label class="lbl">পণ্যের ইউনিট</label><input id="pUnit" list="unitList" placeholder="পিস, প্যাকেট, কার্টন, কেজি, লিটার"></div>
+    <datalist id="unitList"></datalist>
+    <div class="fld"><label class="lbl">ক্যাটাগরি (ঐচ্ছিক)</label><input id="pCategory" list="catList" autocomplete="off"></div>
+    <datalist id="catList"></datalist>
+    <div class="fld"><label class="lbl">প্রতি ইউনিটের দাম (৳)</label><input id="pPrice" inputmode="decimal"></div>
+    <div class="actions">
+      <button class="btn primary" id="pSave">নতুন পণ্য যোগ করুন</button>
+      <button class="btn" id="pCancel" hidden>বাতিল</button>
+    </div>
+  </div>
+  <div class="panel">
+    <input id="pSearch" class="plain" placeholder="পণ্যের নাম দিয়ে সার্চ করুন">
+    <div id="pList"></div>
+  </div>
+</main>
+
+<!-- ===== Page 4: Summary ===== -->
+<main id="page-summary" class="page">
+  <div class="sheet" style="margin-top:14px">
+    <h2 class="sec-title">দৈনিক হিসাব</h2>
+    <div class="row2 no-print" style="align-items:center;margin-bottom:10px">
+      <input id="sumDate" type="date" class="grow">
+      <button class="btn" id="sumPrint">প্রিন্ট</button>
+    </div>
+    <p class="printonly" id="sumDateText"></p>
+    <div class="cards" id="cards"></div>
+    <button type="button" class="comtotal no-print" id="comTotal" hidden></button>
+    <input id="sumSearch" class="plain no-print" placeholder="পণ্য খুঁজুন">
+    <div class="tablewrap">
+      <table class="memo-table sum-table">
+        <thead><tr><th>পণ্যের নাম</th><th>মোট পরিমাণ</th><th>মোট বিক্রয় মূল্য (৳)</th></tr></thead>
+        <tbody id="sumRows"></tbody>
+        <tfoot><tr><td colspan="2" class="lbl2">সর্বমোট (৳)</td><td id="sumTotal">0</td></tr></tfoot>
+      </table>
+    </div>
+    <div class="no-print sum-tools" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn-add" id="sumAdd" style="margin:0;flex:1"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>নতুন পণ্য যোগ করুন</button>
+      <button class="btn" id="sumReset" hidden>মূল হিসাবে ফিরুন</button>
+    </div>
+    <p class="localnote no-print" style="margin-top:10px">নিচের ভাসমান "সম্পাদনা" বাটনে চাপ দিলে নাম, পরিমাণ, একক বা টাকা বদলানো যায়। শেষে "সংরক্ষণ" চাপুন। এই পরিবর্তন শুধু এই হিসাবে থাকে, সংরক্ষিত মেমো বদলায় না।</p>
+  </div>
+</main>
+
+<!-- ===== Page 5: SR Updates ===== -->
+<main id="page-updates" class="page">
+  <div class="seg no-print" style="margin-top:14px">
+    <button class="active" data-sub="pl">মূল্যতালিকা</button>
+    <button data-sub="feed">আপডেট ও নোটিশ</button>
+  </div>
+  <p class="localnote no-print">এই সংস্করণে সব তথ্য শুধু এই ডিভাইসের ব্রাউজারে সংরক্ষিত। এক ফোনের আপডেট অন্য ফোনে নিজে থেকে যায় না; কোম্পানি-ব্যাপী বিতরণের জন্য ভবিষ্যতে ব্যাকএন্ড লাগবে।</p>
+
+  <section id="sub-pl" class="sheet">
+    <h2 class="sec-title">মূল্যতালিকা</h2>
+    <p class="printonly" id="plDate"></p>
+    <div class="filters no-print">
+      <input id="plSearch" placeholder="পণ্যের নাম দিয়ে সার্চ করুন">
+      <select id="plCat" hidden></select>
+      <select id="plSort"><option value="name">নাম অনুযায়ী</option><option value="latest">সর্বশেষ আপডেট</option></select>
+      <button class="btn" id="plPrint">মূল্যতালিকা প্রিন্ট</button>
+    </div>
+    <div class="tablewrap">
+      <table class="memo-table sum-table">
+        <thead><tr><th>পণ্যের নাম</th><th>ইউনিট</th><th>বর্তমান দাম (৳)</th><th>আগের দাম (৳)</th><th>সর্বশেষ আপডেট</th></tr></thead>
+        <tbody id="plRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="sub-feed" hidden>
+    <div class="panel no-print">
+      <h2>নতুন নোটিশ লিখুন</h2>
+      <div class="fld"><label class="lbl">ধরন</label><select id="nType"></select></div>
+      <div class="fld"><label class="lbl">শিরোনাম</label><input id="nTitle" autocomplete="off"></div>
+      <div class="fld"><label class="lbl">সংশ্লিষ্ট পণ্য</label><select id="nProduct"></select></div>
+      <textarea id="nDetails" rows="3" placeholder="বিস্তারিত"></textarea>
+      <div class="actions"><button class="btn primary" id="nSave">নোটিশ প্রকাশ করুন</button></div>
+    </div>
+    <div class="panel"><h2>সর্বশেষ আপডেট</h2><div id="feedList"></div></div>
+  </section>
+</main>
+
+<!-- ===== Settings ===== -->
+<main id="page-settings" class="page">
+  <div class="panel" style="margin-top:14px">
+    <h2 class="sec-title">সেটিংস</h2>
+    <h2>পণ্যের একক</h2>
+    <p class="localnote">এখানে যোগ করা একক মেমোর প্রতিটি সারিতে ও পণ্যসমূহ পাতায় বেছে নেওয়া যাবে।</p>
+    <div class="row2" style="align-items:center;margin-bottom:10px">
+      <input id="unitNew" class="grow" placeholder="নতুন একক লিখুন (যেমন: গ্রাম, বস্তা)" autocomplete="off">
+      <button class="btn primary" id="unitAdd">যোগ করুন</button>
+    </div>
+    <div id="unitItems"></div>
+    <button class="btn" id="unitReset" style="margin-top:10px;width:100%">ডিফল্ট একক ফিরিয়ে আনুন</button>
+  </div>
+  <div class="panel">
+    <h2>সব মেমো প্রিন্ট</h2>
+    <p class="localnote">"সংরক্ষিত" পাতার "সব মেমো প্রিন্ট" চাপলে এক পাতায় কতটি মেমো ছাপা হবে। কোনো মেমোতে পণ্য বেশি হলে নিজে থেকে কম মেমো করে ছাপবে।</p>
+    <select id="perPage"><option value="1">প্রতি পাতায় ১টি (পূর্ণ পাতা)</option><option value="2">প্রতি পাতায় ২টি</option><option value="4">প্রতি পাতায় ৪টি</option><option value="6">প্রতি পাতায় ৬টি</option><option value="8">প্রতি পাতায় ৮টি</option><option value="12">প্রতি পাতায় ১২টি (স্পষ্ট, প্রস্তাবিত)</option><option value="15">প্রতি পাতায় ১৫টি</option><option value="20">প্রতি পাতায় ২০টি</option></select>
+  </div>
+</main>
+
+<!-- Floating actions for the daily summary page -->
+<div class="sfabs no-print">
+  <button class="fab new" id="sumCancel" hidden>বাতিল</button>
+  <button class="fab save" id="sumSave" hidden><svg class="i" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>সংরক্ষণ</button>
+  <button class="fab new" id="comFab"><svg class="i" viewBox="0 0 24 24"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>কমিশন</button>
+  <button class="fab save" id="sumEdit"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>সম্পাদনা</button>
+</div>
+
+<!-- Floating actions: visible on the memo page only -->
+<div class="fabs no-print" id="fabs">
+  <div class="fab-menu" id="fabMenu">
+    <button class="fab prt" id="btnPrint" title="প্রিন্ট"><svg class="i" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
+    <button class="fab new" id="btnNew"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>নতুন মেমো</button>
+    <button class="fab save" id="btnSave"><svg class="i" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>মেমো সংরক্ষণ</button>
+  </div>
+  <button class="fab toggle" id="fabToggle" aria-expanded="false" title="মেনু"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+</div>
+
+<!-- Bottom navigation -->
+<nav class="bnav no-print">
+  <button class="tab active" data-page="memo"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>নতুন মেমো</button>
+  <button class="tab" data-page="saved"><svg class="i" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>সংরক্ষিত</button>
+  <button class="tab" data-page="products"><svg class="i" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>পণ্যসমূহ</button>
+  <button class="tab" data-page="summary"><svg class="i" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>আজকের হিসাব</button>
+  <button class="tab" data-page="updates"><svg class="i" viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>SR আপডেট</button>
+</nav>
+</div>
+
+<div id="printArea"></div>
+<div id="comPanel" class="cpanel" hidden>
+  <div class="cback" id="comBack"></div>
+  <div class="csheet">
+    <div class="chead">
+      <div><h2 class="sec-title" style="margin:0">কমিশন হিসাব</h2><div class="cdate" id="comDate"></div></div>
+      <div class="cbtns"><button class="btn sm" id="comPrint">প্রিন্ট</button><button class="btn sm" id="comClose" aria-label="বন্ধ">✕</button></div>
+    </div>
+    <p class="localnote">শুধু আপনার জন্য। মেমো ও প্রিন্ট করা মেমোতে এটি আসে না। আজকের হিসাবের প্রিন্টে শুধু মোট কমিশন আসে, এই বিস্তারিত টেবিল আসে না। পণ্যসমূহে রাখা দাম হলো তালিকা দাম: তার চেয়ে কম দামে বিক্রি করলে কমিশন যোগ হয়, বেশি দামে বিক্রি করলে বিয়োগ হয়।</p>
+    <div class="cards" id="comCards"></div>
+    <div class="tablewrap">
+      <table class="memo-table sum-table com-table">
+        <thead><tr><th>পণ্য</th><th>পরিমাণ</th><th>তালিকা দর</th><th>বিক্রয় দর (গড়)</th><th>কমিশন</th></tr></thead>
+        <tbody id="comRows"></tbody>
+      </table>
+    </div>
+    <h3 class="com-h">দোকান অনুযায়ী</h3>
+    <div class="tablewrap">
+      <table class="memo-table sum-table com-table">
+        <thead><tr><th>দোকান</th><th>মেমো</th><th>কমিশন</th></tr></thead>
+        <tbody id="comShops"></tbody>
+      </table>
+    </div>
+    <p class="localnote" id="comNote" style="margin-top:10px"></p>
+  </div>
+</div>
+
+<div id="suggest" class="suggest" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* SR Memo — vanilla JS. Data lives in localStorage (this browser/device only). */
+'use strict';
+const $ = id => document.getElementById(id);
+const KEYS = { products: 'khata_products', memos: 'khata_memos', shops: 'khata_shops', updates: 'khata_updates', units: 'khata_units' };
+const DEFAULT_UNITS = ['পিস', 'প্যাকেট', 'কার্টন', 'কেজি', 'লিটার', 'ডজন', 'বক্স'];
+
+/* ---------- Units (একক): user-editable list from Settings ---------- */
+function getUnits() {
+  try { const raw = localStorage.getItem(KEYS.units); if (raw) { const l = JSON.parse(raw); if (Array.isArray(l)) return l; } } catch (e) {}
+  return DEFAULT_UNITS.slice();
+}
+function setUnits(list) { try { localStorage.setItem(KEYS.units, JSON.stringify(list)); return true; } catch (e) { toast('সংরক্ষণ করা যায়নি'); return false; } }
+function fillUnitSelect(sel, value) {
+  const units = getUnits();
+  if (value && !units.includes(value)) units.push(value); // keep units from old memos/products visible
+  sel.innerHTML = '<option value="">একক</option>' + units.map(u => `<option value="${esc(u)}">${esc(u)}</option>`).join('');
+  sel.value = value || '';
+}
+function renderUnits() {
+  const units = getUnits();
+  $('unitList').innerHTML = units.map(u => `<option value="${esc(u)}">`).join('');
+  document.querySelectorAll('#rows .pu').forEach(s => fillUnitSelect(s, s.value));
+  $('unitItems').innerHTML = units.length ? units.map((u, i) => `<div class="item"><b>${esc(u)}</b><div class="btns"><button class="btn sm del" data-ui="${i}">মুছুন</button></div></div>`).join('')
+    : '<div class="empty">কোনো একক নেই। উপরে নতুন একক যোগ করুন।</div>';
+}
+const START_ROWS = 10;
+
+/* ---------- Storage helpers ---------- */
+function load(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; } }
+function save(key, v) {
+  try { localStorage.setItem(key, JSON.stringify(v)); return true; }
+  catch (e) { toast('সংরক্ষণ করা যায়নি (স্টোরেজ পূর্ণ বা বন্ধ)'); return false; }
+}
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = v => { const n = parseFloat(String(v).replace(/[^\d.]/g, '')); return isFinite(n) ? n : 0; };
+const fmt = n => (Math.round(n * 100) / 100).toString();
+const norm = s => s.trim().toLowerCase();
+function todayStr() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function showDate(s) { const [y, m, d] = s.split('-'); return d + '/' + m + '/' + y; }
+let toastTimer;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 2500); }
+
+/* ---------- Navigation ---------- */
+const PILL = { settings: 'সেটিংস', memo: 'বিক্রয় মেমো', saved: 'সংরক্ষিত মেমো', products: 'পণ্যসমূহ', summary: 'দৈনিক হিসাব', updates: 'SR আপডেট' };
+function goTab(name) {
+  document.body.classList.remove('print-all');
+  document.body.dataset.page = name;
+  setFab(false);
+  if (name !== 'summary') commitSumEdit();
+  closeCom();
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  $('pillText').textContent = PILL[name];
+  hideSuggest();
+  scrollTo({ top: 0 });
+  if (name === 'saved') renderSaved();
+  if (name === 'summary') renderSummary();
+  if (name === 'products') renderProducts();
+  if (name === 'updates') { renderPriceList(); renderFeed(); }
+}
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => goTab(b.dataset.page));
+
+/* ---------- Memo state ---------- */
+let editingId = null, dirty = false;
+
+function addRow(r = {}, after) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="no"><span class="n"></span><button type="button" title="সারি মুছুন">×</button><button type="button" class="dup" title="এই পণ্যের আরেকটি একক যোগ করুন">+</button></td>
+    <td><input class="pn" autocomplete="off"></td>
+    <td class="qty"><input class="pq" inputmode="decimal" placeholder="০"><select class="pu"></select></td>
+    <td class="price"><span class="tot"></span><input class="pp" inputmode="decimal" placeholder="দর"></td>`;
+  tr.dataset.pid = r.pid || '';
+  if (r.list != null) { tr.dataset.list = r.list; tr.dataset.lkey = norm(r.name || '') + '|' + norm(r.unit || ''); } // list price kept from when the memo was saved
+  fillUnitSelect(tr.querySelector('.pu'), r.unit || '');
+  tr.querySelector('.pn').value = r.name || '';
+  tr.querySelector('.pq').value = r.qty ?? '';
+  tr.querySelector('.pp').value = r.price ?? '';
+  tr.querySelector('button').onclick = () => { tr.remove(); if (!$('rows').children.length) addRow(); dirty = true; recalc(); };
+  /* "+" = same product in another unit (e.g. 1 পলি + 20 পিস of the same coffee) */
+  tr.querySelector('.dup').onclick = () => {
+    const name = tr.querySelector('.pn').value.trim();
+    if (!name) return toast('আগে পণ্যের নাম লিখুন');
+    const used = readRows().filter(x => norm(x.name) === norm(name)).map(x => norm(x.unit));
+    const sib = load(KEYS.products).find(p => norm(p.name) === norm(name) && !used.includes(norm(p.unit)));
+    addRow({ name, pid: sib ? sib.id : '', unit: sib ? sib.unit : '', price: sib ? sib.price : '' }, tr);
+    tr.nextElementSibling.querySelector(sib ? '.pq' : '.pu').focus();
+    dirty = true; recalc();
+  };
+  if (after) after.after(tr); else $('rows').appendChild(tr);
+}
+
+/* Product suggestions: floating list so it is never clipped by the scrolling table */
+const sg = $('suggest');
+function hideSuggest() { sg.hidden = true; sg.innerHTML = ''; }
+function showSuggest(input, onPick) {
+  const q = norm(input.value); // suggestions start from the very first letter
+  if (!q) return hideSuggest();
+  const hits = load(KEYS.products)
+    .filter(p => norm(p.name).includes(q) || norm(p.category || '').includes(q))
+    .sort((a, b) => (norm(b.name).startsWith(q) - norm(a.name).startsWith(q)) || a.name.localeCompare(b.name, 'bn'))
+    .slice(0, 8);
+  if (!hits.length) return hideSuggest();
+  const hl = s => { const i = norm(s).indexOf(q); return i < 0 ? esc(s) : esc(s.slice(0, i)) + '<em>' + esc(s.slice(i, i + q.length)) + '</em>' + esc(s.slice(i + q.length)); };
+  sg.innerHTML = hits.map(p => `<div data-id="${esc(p.id)}"><span>${hl(p.name)} <small>(${esc(p.unit)})</small></span><b>৳${fmt(p.price)}</b></div>`).join('');
+  const r = input.getBoundingClientRect();
+  sg.style.left = Math.max(4, r.left + scrollX) + 'px';
+  sg.style.width = Math.min(Math.max(r.width, 260), innerWidth - 8) + 'px';
+  sg.hidden = false;
+  const vh = window.visualViewport ? visualViewport.height : innerHeight; // open upward when the keyboard leaves little room below
+  const below = vh - r.bottom, h = sg.offsetHeight;
+  sg.style.top = ((below < h + 8 && r.top > below) ? Math.max(scrollY + 4, r.top + scrollY - h) : r.bottom + scrollY) + 'px';
+  sg.querySelectorAll('div').forEach(d => d.onmousedown = e => { // mousedown fires before input blur
+    e.preventDefault();
+    onPick(hits.find(p => p.id === d.dataset.id));
+    hideSuggest();
+  });
+}
+
+$('rows').addEventListener('input', e => {
+  const tr = e.target.closest('tr'); dirty = true;
+  if (e.target.classList.contains('pn')) {
+    tr.dataset.pid = ''; // manual typing breaks the product link
+    showSuggest(e.target, p => {
+      e.target.value = p.name; tr.dataset.pid = p.id; fillUnitSelect(tr.querySelector('.pu'), p.unit || '');
+      tr.querySelector('.pp').value = p.price; tr.querySelector('.pq').focus(); recalc();
+    });
+  }
+  recalc();
+});
+/* Changing the unit of a row picks the matching product's price automatically */
+$('rows').addEventListener('input', e => {
+  if (!e.target.classList.contains('pu')) return;
+  const tr = e.target.closest('tr'), name = tr.querySelector('.pn').value, u = e.target.value;
+  const p = name && u && load(KEYS.products).find(x => norm(x.name) === norm(name) && norm(x.unit) === norm(u));
+  if (p) { tr.dataset.pid = p.id; tr.querySelector('.pp').value = p.price; recalc(); }
+});
+document.addEventListener('click', e => { if (!e.target.classList.contains('pn')) hideSuggest(); });
+
+/* Read the memo table into plain data (single source of truth for save + totals) */
+function readRows() {
+  return [...$('rows').children].map(tr => {
+    const name = tr.querySelector('.pn').value.trim();
+    const qty = num(tr.querySelector('.pq').value), price = num(tr.querySelector('.pp').value);
+    return { tr, pid: tr.dataset.pid, unit: tr.querySelector('.pu').value, name, qty, price, total: qty * price, valid: name && qty > 0, list: tr.dataset.list, lkey: tr.dataset.lkey };
+  });
+}
+
+/* ---------- Commission support (SR-only; never shown on the memo screen or in any printed memo) ----------
+   The product's price in "পণ্যসমূহ" is the list price. It is stored on every saved memo line (item.list)
+   so later price changes don't rewrite old commission. */
+function lookupList(it, ps) {
+  const u = norm(it.unit || '');
+  const byPid = it.pid && ps.find(p => p.id === it.pid);
+  if (byPid && norm(byPid.name) === norm(it.name) && (!u || norm(byPid.unit) === u)) return byPid.price;
+  const p = ps.find(x => norm(x.name) === norm(it.name) && norm(x.unit) === u);
+  if (p) return p.price;
+  const same = ps.filter(x => norm(x.name) === norm(it.name));
+  return same.length === 1 && !u ? same[0].price : null;
+}
+function listPriceOf(r) {
+  if (r.list != null && r.list !== '' && r.lkey === norm(r.name) + '|' + norm(r.unit || '')) return +r.list; // untouched line of a reopened memo
+  return lookupList(r, load(KEYS.products));
+}
+/* Line totals, serial numbers, and grand total */
+function recalc() {
+  let items = 0, qty = 0, amt = 0, n = 0; const names = new Set();
+  readRows().forEach((r, i) => {
+    r.tr.querySelector('.n').textContent = i + 1;
+    r.tr.querySelector('.tot').textContent = r.valid ? '৳' + fmt(r.total) : '';
+    if (r.valid) { names.add(norm(r.name)); qty += r.qty; amt += r.total; }
+  });
+  items = names.size;
+  $('totItems').textContent = items; $('totQty').textContent = fmt(qty); $('totAmt').textContent = '৳' + fmt(amt);
+}
+
+function resetMemo() {
+  $('shopName').value = $('shopAddr').value = $('shopMobile').value = $('memoNote').value = '';
+  $('memoDate').value = todayStr();
+  $('rows').innerHTML = '';
+  for (let i = 0; i < START_ROWS; i++) addRow();
+  editingId = null; dirty = false; setBanner(); recalc();
+}
+function setBanner() {
+  const b = $('editBanner');
+  b.hidden = !editingId;
+  b.textContent = editingId ? 'আপনি একটি সংরক্ষিত মেমো সম্পাদনা করছেন। পরিবর্তন করে "মেমো সংরক্ষণ" চাপুন।' : '';
+}
+
+/* Shop suggestions (datalist) + autofill address/mobile */
+function renderShops() { $('shopList').innerHTML = load(KEYS.shops).map(s => `<option value="${esc(s.name)}">`).join(''); }
+$('shopName').addEventListener('change', () => {
+  const s = load(KEYS.shops).find(x => norm(x.name) === norm($('shopName').value));
+  if (s) { if (!$('shopAddr').value) $('shopAddr').value = s.address || ''; if (!$('shopMobile').value) $('shopMobile').value = s.mobile || ''; }
+});
+['shopName', 'memoDate', 'shopAddr', 'shopMobile', 'memoNote'].forEach(id => $(id).addEventListener('input', () => dirty = true));
+$('addRow').onclick = () => { addRow(); recalc(); $('rows').lastChild.querySelector('.pn').focus(); };
+
+/* Save new or existing memo (editing replaces by id — no duplicates) */
+function saveMemo() {
+  const name = $('shopName').value.trim();
+  const lines = readRows().filter(r => r.valid);
+  if (!name) return toast('দোকানের নাম লিখুন'), $('shopName').focus();
+  if (!lines.length) return toast('কমপক্ষে একটি পণ্য ও পরিমাণ দিন');
+  const date = $('memoDate').value || todayStr();
+  const shops = load(KEYS.shops);
+  let shop = shops.find(s => norm(s.name) === norm(name));
+  if (!shop) { shop = { id: uid('s') }; shops.push(shop); }
+  Object.assign(shop, { name, address: $('shopAddr').value.trim(), mobile: $('shopMobile').value.trim() });
+  const memo = {
+    id: editingId || uid('m'), date, shopId: shop.id, shopName: name,
+    address: shop.address, mobile: shop.mobile, note: $('memoNote').value.trim(),
+    items: lines.map(r => ({ pid: r.pid, name: r.name, unit: r.unit, qty: r.qty, price: r.price, total: r.total, list: listPriceOf(r) })),
+    total: lines.reduce((a, r) => a + r.total, 0),
+    createdAt: Date.now()
+  };
+  const memos = load(KEYS.memos), i = memos.findIndex(m => m.id === memo.id);
+  if (i >= 0) { memo.createdAt = memos[i].createdAt; memos[i] = memo; } else memos.push(memo);
+  if (!save(KEYS.memos, memos) || !save(KEYS.shops, shops)) return;
+  editingId = memo.id; dirty = false; setBanner(); renderShops();
+  toast('মেমো সংরক্ষিত হয়েছে');
+}
+
+function newMemo() {
+  if (dirty && !confirm('সংরক্ষণ না করা পরিবর্তন মুছে যাবে। নতুন মেমো শুরু করবেন?')) return;
+  resetMemo();
+}
+
+/* Open a saved memo into the form for viewing/editing */
+function openMemo(id) {
+  const m = load(KEYS.memos).find(x => x.id === id); if (!m) return;
+  if (dirty && !confirm('সংরক্ষণ না করা পরিবর্তন মুছে যাবে। চালিয়ে যাবেন?')) return;
+  goTab('memo');
+  $('shopName').value = m.shopName; $('shopAddr').value = m.address || ''; $('shopMobile').value = m.mobile || '';
+  $('memoDate').value = m.date; $('memoNote').value = m.note || '';
+  $('rows').innerHTML = '';
+  m.items.forEach(it => addRow(it));
+  while ($('rows').children.length < START_ROWS) addRow();
+  editingId = id; dirty = false; setBanner(); recalc();
+}
+function deleteMemo(id) {
+  if (!confirm('এই মেমো মুছে ফেলবেন?')) return;
+  save(KEYS.memos, load(KEYS.memos).filter(m => m.id !== id));
+  if (editingId === id) { editingId = null; setBanner(); }
+  renderSaved(); toast('মেমো মুছে ফেলা হয়েছে');
+}
+
+/* ---------- Saved memos page ---------- */
+function filteredMemos() {
+  const d = $('savedDate').value, q = norm($('savedSearch').value);
+  return load(KEYS.memos)
+    .filter(m => (!d || m.date === d) && norm(m.shopName).includes(q))
+    .sort((a, b) => (b.date.localeCompare(a.date)) || (b.createdAt - a.createdAt));
+}
+function renderSaved() {
+  const list = filteredMemos();
+  const total = list.reduce((a, m) => a + m.total, 0);
+  $('savedSum').textContent = list.length + 'টি মেমো · মোট ৳' + fmt(total);
+  $('savedList').innerHTML = list.length ? list.map(m => `<div class="item"><div><b>${esc(m.shopName)}</b>
+    <small>${showDate(m.date)} · ${m.items.length} পণ্য · ৳${fmt(m.total)}</small></div>
+    <div class="btns"><button class="btn sm" data-open="${esc(m.id)}">খুলুন</button><button class="btn sm" data-print="${esc(m.id)}">প্রিন্ট</button><button class="btn sm del" data-del="${esc(m.id)}">মুছুন</button></div></div>`).join('')
+    : '<div class="empty">কোনো সংরক্ষিত মেমো পাওয়া যায়নি</div>';
+}
+$('savedList').onclick = e => {
+  const o = e.target.dataset.open, d = e.target.dataset.del, p = e.target.dataset.print;
+  if (o) openMemo(o);
+  if (d) deleteMemo(d);
+  if (p) printMemos(load(KEYS.memos).filter(m => m.id === p));
+};
+$('savedDate').onchange = $('savedSearch').oninput = renderSaved;
+$('savedAllDates').onclick = () => { $('savedDate').value = ''; renderSaved(); };
+$('printAll').onclick = () => printMemos(filteredMemos(), getPerPage());
+
+/* Build one printable page per memo and print them all together */
+/* Same product in several units (12 পলি + 20 পিস) is shown once, with quantities joined */
+function groupItems(items) {
+  const map = new Map();
+  items.forEach(it => {
+    const k = norm(it.name);
+    const g = map.get(k) || { name: it.name, parts: new Map(), total: 0 };
+    const uk = norm(it.unit || '');
+    const p = g.parts.get(uk) || { unit: it.unit || '', qty: 0, amt: 0 };
+    p.qty += it.qty; p.amt += it.total; g.parts.set(uk, p); g.total += it.total;
+    map.set(k, g);
+  });
+  return [...map.values()].map(g => ({ name: g.name, parts: [...g.parts.values()], total: g.total }));
+}
+const qtyText = parts => parts.map(p => fmt(p.qty) + (p.unit ? ' ' + p.unit : '')).join(' ');
+function memoPrintHTML(m) {
+  const rows = groupItems(m.items).map((g, i) => `<tr><td class="sn">${i + 1}</td><td>${esc(g.name)}</td><td class="c">${esc(qtyText(g.parts))}</td><td class="r">${g.parts.map(p => '৳' + fmt(p.qty ? p.amt / p.qty : 0) + (p.unit ? ' / ' + esc(p.unit) : '')).join('<br>')}</td><td class="r">৳${fmt(g.total)}</td></tr>`).join('');
+  return `<section class="pm"><div class="ph">মেমো</div>
+    <div class="meta"><b>দোকান:</b> ${esc(m.shopName)} &nbsp;&nbsp; <b>তারিখ:</b> ${showDate(m.date)}<br>
+    ${m.address ? '<b>ঠিকানা:</b> ' + esc(m.address) + '<br>' : ''}${m.mobile ? '<b>মোবাইল:</b> ' + esc(m.mobile) : ''}</div>
+    <table><thead><tr><th>ক্রম</th><th>পণ্যের নাম</th><th>পরিমাণ</th><th>দর (৳)</th><th>টাকা (৳)</th></tr></thead><tbody>${rows}
+    <tr class="gt"><td colspan="4" class="r">সর্বমোট টাকা</td><td class="r">৳${fmt(m.total)}</td></tr></tbody></table>
+    ${m.note ? '<p><b>বিঃদ্রঃ</b> ' + esc(m.note) + '</p>' : ''}
+    <div class="sg"><span class="nt"></span><div>স্বাক্ষর</div></div></section>`;
+}
+/* Compact memo for multi-per-page sheets (e.g. 20 memos on one A4 page) */
+const PER_PAGE = [1, 2, 4, 6, 8, 12, 15, 20];
+const GRID = { 2: [1, 2], 4: [2, 2], 6: [2, 3], 8: [2, 4], 12: [4, 3], 15: [5, 3], 20: [4, 5] }; // [columns, rows] — 12 and 15 give tall, slip-shaped memos
+const FONT = { 2: 10, 4: 9.5, 6: 9, 8: 8.5, 12: 7, 15: 6.3, 20: 5.5 };
+const MIN_ROWS = { 2: 14, 4: 14, 6: 11, 8: 7, 12: 10, 15: 10, 20: 0 }; // blank numbered rows so a short memo still looks like a full form
+function compactHTML(m, n) {
+  const groups = groupItems(m.items);
+  let rows = groups.map((g, i) => `<tr><td class="c">${i + 1}</td><td>${esc(g.name)}</td><td class="c">${esc(qtyText(g.parts))}</td><td class="r">${fmt(g.total)}</td></tr>`).join('');
+  for (let i = groups.length; i < (MIN_ROWS[n] || 0); i++) rows += `<tr class="fl"><td class="c">${i + 1}</td><td></td><td></td><td></td></tr>`;
+  const sub = [m.address, m.mobile].filter(Boolean).join(' · ');
+  return `<div class="cm"><div class="h">SR Memo</div>
+    <div class="in"><b>${esc(m.shopName)}</b><span>${showDate(m.date)}</span></div>
+    ${sub ? `<div class="sub">${esc(sub)}</div>` : ''}
+    <table><thead><tr><th>#</th><th>পণ্য</th><th>পরিমাণ</th><th>টাকা</th></tr></thead><tbody>${rows}</tbody></table>
+    ${m.note ? `<div class="sub">বিঃদ্রঃ ${esc(m.note)}</div>` : ''}
+    <div class="tt"><span>মোট</span><b>৳${fmt(m.total)}</b></div><div class="sgn">স্বাক্ষর</div></div>`;
+}
+function buildPages(list, n) {
+  if (n === 1) return list.map(memoPrintHTML).join('');
+  const [c, r] = GRID[n], pages = [];
+  for (let i = 0; i < list.length; i += n)
+    pages.push(`<div class="pg" style="grid-template-columns:repeat(${c},1fr);grid-template-rows:repeat(${r},1fr);font-size:${FONT[n]}pt">${list.slice(i, i + n).map(m => compactHTML(m, n)).join('')}</div>`);
+  return pages.join('');
+}
+function getPerPage() { const v = +localStorage.getItem('khata_perpage'); return PER_PAGE.includes(v) ? v : 12; }
+function printMemos(list, per = 1) {
+  if (!list.length) return toast('প্রিন্ট করার মতো কোনো মেমো নেই');
+  const area = $('printArea');
+  area.style.cssText = 'display:block;position:absolute;left:-99999px;top:0;width:198mm'; // off-screen, for measuring
+  let used = per;
+  for (const n of PER_PAGE.filter(x => x <= per).reverse()) { // if a memo has too many items, step down to fewer per page
+    area.innerHTML = buildPages(list, n); used = n;
+    if (n === 1 || ![...area.querySelectorAll('.cm')].some(c => c.scrollHeight > c.clientHeight + 1)) break;
+  }
+  area.style.cssText = '';
+  if (used !== per) toast('কিছু মেমোতে পণ্য বেশি, তাই প্রতি পাতায় ' + used + 'টি করে প্রিন্ট হচ্ছে');
+  document.body.classList.add('print-all');
+  setTimeout(() => window.print(), 50);
+}
+window.addEventListener('afterprint', () => document.body.classList.remove('print-all'));
+
+/* Floating menu: hidden by default, tap the round button to show/hide */
+function setFab(open) { $('fabs').classList.toggle('open', open); $('fabToggle').setAttribute('aria-expanded', open); }
+$('fabToggle').onclick = () => setFab(!$('fabs').classList.contains('open'));
+$('btnSave').onclick = () => { saveMemo(); setFab(false); };
+$('btnNew').onclick = () => { newMemo(); setFab(false); };
+/* Print the memo being edited, using the same grouped layout as saved memos */
+$('btnPrint').onclick = () => {
+  setFab(false);
+  const lines = readRows().filter(r => r.valid);
+  if (!lines.length) return toast('প্রিন্ট করার জন্য কমপক্ষে একটি পণ্য ও পরিমাণ দিন');
+  printMemos([{
+    shopName: $('shopName').value.trim(), date: $('memoDate').value || todayStr(),
+    address: $('shopAddr').value.trim(), mobile: $('shopMobile').value.trim(), note: $('memoNote').value.trim(),
+    items: lines.map(r => ({ name: r.name, unit: r.unit, qty: r.qty, price: r.price, total: r.total })),
+    total: lines.reduce((a, r) => a + r.total, 0)
+  }]);
+};
+
+/* ---------- Product management ---------- */
+let editingProduct = null;
+function saveProduct() {
+  const name = $('pName').value.trim(), unit = $('pUnit').value.trim(), price = num($('pPrice').value);
+  if (!name || !unit) return toast('পণ্যের নাম ও ইউনিট লিখুন');
+  if (!(price > 0)) return toast('সঠিক দাম লিখুন');
+  const list = load(KEYS.products);
+  if (list.some(p => p.id !== editingProduct && norm(p.name) === norm(name) && norm(p.unit) === norm(unit))) return toast('এই নাম ও ইউনিটের পণ্য আগেই আছে');
+  const category = $('pCategory').value.trim(), now = Date.now();
+  let change = null; // a real event that is logged to the SR Updates feed
+  if (editingProduct) {
+    const p = list.find(x => x.id === editingProduct), old = p.price;
+    Object.assign(p, { name, unit, category });
+    if (old !== price) { // price history: keep previous price + time
+      Object.assign(p, { price, prevPrice: old, updatedAt: now });
+      change = { type: 'price', title: name + ' এর দাম পরিবর্তন', productId: p.id, productName: name, oldPrice: old, newPrice: price };
+    }
+  } else {
+    const p = { id: uid('p'), name, unit, category, price, prevPrice: null, updatedAt: now };
+    list.push(p);
+    change = { type: 'new', title: 'নতুন পণ্য: ' + name, productId: p.id, productName: name, newPrice: price };
+  }
+  if (!save(KEYS.products, list)) return;
+  if (change) Repo.addUpdate(change);
+  toast(editingProduct ? 'পণ্য হালনাগাদ হয়েছে' : 'পণ্য যোগ হয়েছে');
+  cancelProductEdit(); renderProducts();
+}
+function cancelProductEdit() {
+  editingProduct = null; $('pName').value = $('pUnit').value = $('pPrice').value = $('pCategory').value = '';
+  $('pFormTitle').textContent = 'নতুন পণ্য যোগ করুন'; $('pSave').textContent = 'নতুন পণ্য যোগ করুন'; $('pCancel').hidden = true;
+}
+function renderProducts() {
+  const q = norm($('pSearch').value);
+  const list = load(KEYS.products).filter(p => norm(p.name).includes(q)).sort((a, b) => a.name.localeCompare(b.name, 'bn'));
+  $('pList').innerHTML = list.length ? list.map(p => `<div class="item"><div><b>${esc(p.name)}</b><small>${esc(p.unit)} · ৳${fmt(p.price)}${p.category ? ' · ' + esc(p.category) : ''}</small></div>
+    <div class="btns"><button class="btn sm" data-edit="${esc(p.id)}">সম্পাদনা</button><button class="btn sm del" data-del="${esc(p.id)}">মুছুন</button></div></div>`).join('')
+    : `<div class="empty">${q ? 'কোনো পণ্য পাওয়া যায়নি' : 'এখনো কোনো পণ্য নেই। উপরে আপনার পণ্য যোগ করুন।'}</div>`;
+}
+$('pList').onclick = e => {
+  const ed = e.target.dataset.edit, del = e.target.dataset.del;
+  if (ed) {
+    const p = load(KEYS.products).find(x => x.id === ed); if (!p) return;
+    editingProduct = ed; $('pName').value = p.name; $('pUnit').value = p.unit; $('pPrice').value = p.price; $('pCategory').value = p.category || '';
+    $('pFormTitle').textContent = 'পণ্য সম্পাদনা করুন'; $('pSave').textContent = 'পরিবর্তন সংরক্ষণ'; $('pCancel').hidden = false;
+    scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  if (del && confirm('এই পণ্য মুছে ফেলবেন? পুরনো মেমো অপরিবর্তিত থাকবে।')) {
+    save(KEYS.products, load(KEYS.products).filter(p => p.id !== del)); renderProducts();
+  }
+};
+$('pSave').onclick = saveProduct; $('pCancel').onclick = cancelProductEdit; $('pSearch').oninput = renderProducts;
+
+/* ---------- Daily summary ----------
+   Built from saved memos, but every row is editable (name, quantity per unit, amount),
+   rows can be added or removed. Edits are kept per date in their own storage key and
+   never touch the saved memos; "মূল হিসাবে ফিরুন" drops them. */
+const SE_KEY = 'khata_sumedits';
+function loadSE() { try { return JSON.parse(localStorage.getItem(SE_KEY)) || {}; } catch (e) { return {}; } }
+function saveSE(o) { try { localStorage.setItem(SE_KEY, JSON.stringify(o)); } catch (e) { toast('সংরক্ষণ করা যায়নি'); } }
+const sumDay = () => $('sumDate').value || todayStr();
+const cloneRow = r => ({ id: r.id, name: r.name, total: r.total, parts: r.parts.map(p => ({ unit: p.unit, qty: p.qty })) });
+const editsOf = (all, d) => all[d] || (all[d] = { rows: {}, del: [], add: [] });
+let curRows = [], sumMeta = { memos: 0, shops: 0, lines: 0 };
+
+function buildSumRows(d) {
+  const memos = load(KEYS.memos).filter(m => m.date === d);
+  const all = []; let lines = 0;
+  memos.forEach(m => m.items.forEach(it => { all.push(it); lines++; }));
+  sumMeta = { memos: memos.length, shops: new Set(memos.map(m => m.shopId)).size, lines };
+  const ed = loadSE()[d] || { rows: {}, del: [], add: [] };
+  const rows = groupItems(all)
+    .map(g => ({ id: 'a:' + norm(g.name), name: g.name, total: g.total, parts: g.parts.map(p => ({ unit: p.unit, qty: p.qty })) }))
+    .filter(r => !ed.del.includes(r.id))
+    .map(r => ed.rows[r.id] ? { ...cloneRow(ed.rows[r.id]), edited: true } : r);
+  ed.add.forEach(r => rows.push({ ...cloneRow(r), edited: true }));
+  return rows;
+}
+const partHTML = p => `<span class="pt"><input class="sqn" inputmode="decimal" value="${p.qty ? esc(String(p.qty)) : ''}" placeholder="০"><select class="su" data-v="${esc(p.unit || '')}"></select><button type="button" class="rp no-print" title="এই একক মুছুন">×</button></span>`;
+const sumRowHTML = r => `<tr data-id="${esc(r.id)}"${r.edited ? ' class="sed"' : ''}>
+  <td><input class="sn" value="${esc(r.name)}" placeholder="পণ্যের নাম"></td>
+  <td class="sq">${r.parts.map(partHTML).join('')}<button type="button" class="addp no-print">+ একক</button></td>
+  <td class="st"><input class="stot" inputmode="decimal" value="${esc(fmt(r.total))}"><button type="button" class="delr no-print" title="সারি মুছুন">×</button></td></tr>`;
+
+function updateSumTotals() {
+  const total = curRows.reduce((a, r) => a + r.total, 0), d = sumDay(), e = loadSE()[d];
+  $('cards').innerHTML = [['আজকের মোট মেমো', sumMeta.memos], ['মোট দোকান', sumMeta.shops],
+    ['মোট পণ্য অর্ডারের লাইন', sumMeta.lines], ['আলাদা পণ্যের সংখ্যা', curRows.length], ['সর্বমোট অর্ডার মূল্য (৳)', '৳' + fmt(total)]]
+    .map(([l, v]) => `<div>${l}<b>${v}</b></div>`).join('');
+  $('sumTotal').textContent = '৳' + fmt(total);
+  $('sumReset').hidden = !(e && (Object.keys(e.rows).length || e.del.length || e.add.length));
+  if (!sumEditing) $('sumReset').hidden = true;
+}
+function renderSummary() {
+  const d = sumDay();
+  curRows = buildSumRows(d);
+  $('sumDateText').textContent = 'তারিখ: ' + showDate(d);
+  const q = norm($('sumSearch').value);
+  const list = curRows.filter(r => norm(r.name).includes(q));
+  $('sumRows').innerHTML = list.length ? list.map(sumRowHTML).join('')
+    : `<tr><td colspan="3" class="empty">${curRows.length ? 'কোনো পণ্য পাওয়া যায়নি' : 'এই তারিখে কোনো সংরক্ষিত মেমো নেই। নিচের বাটন দিয়ে পণ্য যোগ করতে পারেন।'}</td></tr>`;
+  $('sumRows').querySelectorAll('select.su').forEach(s => fillUnitSelect(s, s.dataset.v));
+  applySumMode();
+  updateSumTotals();
+  renderCommission(d);
+}
+
+/* Commission = (list price − sold price) × quantity, per memo line, from saved memos of the day.
+   Sold below list → commission; sold above list → subtracted (shown separately and in the net). */
+const sgn = v => (v < 0 ? '−' : v > 0 ? '+' : '') + '৳' + fmt(Math.abs(v));
+const sgnCls = v => v > 0 ? 'pos' : v < 0 ? 'neg' : '';
+let comState = { has: false, net: 0 };
+function renderCommission(d) {
+  const ps = load(KEYS.products), memos = load(KEYS.memos).filter(m => m.date === d);
+  const prod = new Map(), shops = new Map();
+  let disc = 0, extra = 0, unlisted = 0;
+  memos.forEach(m => {
+    const sk = m.shopId || norm(m.shopName), s = shops.get(sk) || { name: m.shopName, ids: new Set(), diff: 0 };
+    s.ids.add(m.id); shops.set(sk, s);
+    m.items.forEach(it => {
+      const list = it.list != null ? it.list : lookupList(it, ps);
+      if (list == null) { unlisted++; return; }
+      const diff = (list - it.price) * it.qty;
+      if (diff > 0) disc += diff; else if (diff < 0) extra -= diff;
+      const k = norm(it.name) + '|' + norm(it.unit || ''), g = prod.get(k) || { name: it.name, unit: it.unit, qty: 0, diff: 0, listAmt: 0, soldAmt: 0 };
+      g.qty += it.qty; g.diff += diff; g.listAmt += list * it.qty; g.soldAmt += it.price * it.qty; prod.set(k, g);
+      s.diff += diff;
+    });
+  });
+  const net = disc - extra;
+  $('comCards').innerHTML = [['কমিশন (কম দামে বিক্রি)', '৳' + fmt(disc)], ['বেশি দামে বিক্রি (বিয়োগ)', '৳' + fmt(extra)]]
+    .map(([l, v]) => `<div>${l}<b>${v}</b></div>`).join('') + `<div>নিট কমিশন<b class="${sgnCls(net)}">${sgn(net)}</b></div>`;
+  const pr = [...prod.values()].sort((a, b) => a.name.localeCompare(b.name, 'bn'));
+  $('comRows').innerHTML = pr.length ? pr.map(g => `<tr><td>${esc(g.name)}${g.unit ? ' (' + esc(g.unit) + ')' : ''}</td><td>${fmt(g.qty)}</td>
+    <td>৳${fmt(g.listAmt / g.qty)}</td><td>৳${fmt(g.soldAmt / g.qty)}</td><td class="${sgnCls(g.diff)}">${sgn(g.diff)}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="empty">এই তারিখে কমিশন হিসাবের মতো কোনো বিক্রি নেই</td></tr>';
+  const sh = [...shops.values()].sort((a, b) => a.name.localeCompare(b.name, 'bn'));
+  $('comShops').innerHTML = sh.length ? sh.map(s => `<tr><td>${esc(s.name)}</td><td>${s.ids.size}</td><td class="${sgnCls(s.diff)}">${sgn(s.diff)}</td></tr>`).join('')
+    : '<tr><td colspan="3" class="empty">কোনো মেমো নেই</td></tr>';
+  $('comNote').textContent = unlisted ? unlisted + 'টি লাইনের পণ্য "পণ্যসমূহ"-তে তালিকাভুক্ত নয়, তাই সেগুলোর কমিশন ধরা হয়নি।' : '';
+  $('comNote').hidden = !unlisted;
+  comState = { has: !!(disc || extra), net };
+  $('comTotal').hidden = !(disc || extra); // the summary only shows the overall total, and only when there is commission
+  $('comTotal').innerHTML = '<span>মোট কমিশন (নিট)</span><b class="' + sgnCls(net) + '">' + sgn(net) + ' ›</b>';
+}
+/* The detailed commission view is a floating sheet: hidden until the user taps "কমিশন" (or the total bar). */
+function openCom() { renderCommission(sumDay()); $('comDate').textContent = 'তারিখ: ' + showDate(sumDay()); $('comPanel').hidden = false; document.body.classList.add('noscroll'); }
+function closeCom() { $('comPanel').hidden = true; document.body.classList.remove('noscroll'); }
+$('comFab').onclick = $('comTotal').onclick = openCom;
+$('comClose').onclick = $('comBack').onclick = closeCom;
+$('comPrint').onclick = () => { document.body.classList.add('print-com'); setTimeout(() => window.print(), 50); }; // prints the commission sheet alone
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('comPanel').hidden) closeCom(); });
+window.addEventListener('afterprint', () => document.body.classList.remove('print-com'));
+/* View mode (default): read-only text. Edit mode: tap "সম্পাদনা", change values, then "সংরক্ষণ" (or "বাতিল"). */
+let sumEditing = false, sumBackup, sumEditDay = '';
+function applySumMode() {
+  const ed = sumEditing;
+  $('page-summary').classList.toggle('sum-view', !ed);
+  $('sumRows').querySelectorAll('input').forEach(i => { i.readOnly = !ed; i.tabIndex = ed ? 0 : -1; });
+  $('sumRows').querySelectorAll('select').forEach(s => { s.disabled = !ed; s.style.display = (!ed && !s.value) ? 'none' : ''; });
+  $('sumRows').querySelectorAll('input.sqn').forEach(i => { i.style.width = ed ? '' : Math.max(1, i.value.length + 0.5) + 'ch'; });
+  $('sumRows').querySelectorAll('input.sn').forEach(i => { i.style.textOverflow = ed ? '' : 'clip'; });
+  $('sumEdit').hidden = ed; $('sumSave').hidden = !ed; $('sumCancel').hidden = !ed; $('comFab').hidden = ed;
+  const tw = $('page-summary').querySelector('.tablewrap'); if (tw && !ed) tw.scrollLeft = 0;
+}
+function commitSumEdit() { // finish editing, keep changes (blank added rows are dropped)
+  if (!sumEditing) return;
+  const all = loadSE(), e = all[sumEditDay];
+  if (e) e.add = e.add.filter(x => x.name.trim());
+  saveSE(all); sumEditing = false;
+}
+$('sumEdit').onclick = () => { sumEditDay = sumDay(); sumBackup = JSON.stringify(loadSE()[sumEditDay] || null); sumEditing = true; renderSummary(); const f = $('sumRows').querySelector('.sn'); if (f) f.focus(); };
+$('sumSave').onclick = () => { commitSumEdit(); renderSummary(); toast('হিসাব সংরক্ষিত হয়েছে'); };
+$('sumCancel').onclick = () => {
+  const all = loadSE(), b = JSON.parse(sumBackup);
+  if (b) all[sumEditDay] = b; else delete all[sumEditDay];
+  saveSE(all); sumEditing = false; renderSummary();
+};
+function readSumRow(tr) {
+  const r = curRows.find(x => x.id === tr.dataset.id); if (!r) return null;
+  r.name = tr.querySelector('.sn').value.trim();
+  r.parts = [...tr.querySelectorAll('.pt')].map(s => ({ unit: s.querySelector('.su').value, qty: num(s.querySelector('.sqn').value) }));
+  r.total = num(tr.querySelector('.stot').value);
+  r.edited = true; tr.classList.add('sed');
+  return r;
+}
+function persistSumRow(r) {
+  const all = loadSE(), e = editsOf(all, sumDay());
+  if (r.id.startsWith('n:')) { const i = e.add.findIndex(x => x.id === r.id); i >= 0 ? e.add[i] = cloneRow(r) : e.add.push(cloneRow(r)); }
+  else e.rows[r.id] = cloneRow(r);
+  saveSE(all);
+}
+$('sumRows').addEventListener('input', e => {
+  const tr = e.target.closest('tr[data-id]'); if (!tr || !sumEditing) return;
+  const r = readSumRow(tr); if (r) { persistSumRow(r); updateSumTotals(); }
+});
+$('sumRows').addEventListener('click', e => {
+  const tr = e.target.closest('tr[data-id]'); if (!tr || !sumEditing) return;
+  const id = tr.dataset.id, c = e.target.classList;
+  if (c.contains('addp')) { // another unit for the same product
+    const r = readSumRow(tr); r.parts.push({ unit: '', qty: 0 }); persistSumRow(r); renderSummary();
+    const t = [...$('sumRows').children].find(x => x.dataset.id === id);
+    if (t) t.querySelectorAll('.sqn')[t.querySelectorAll('.sqn').length - 1].focus();
+  } else if (c.contains('rp')) {
+    if (tr.querySelectorAll('.pt').length < 2) return toast('কমপক্ষে একটি একক রাখুন');
+    e.target.closest('.pt').remove();
+    const r = readSumRow(tr); persistSumRow(r); updateSumTotals();
+  } else if (c.contains('delr')) {
+    if (!confirm('এই সারি হিসাব থেকে মুছে ফেলবেন? (সংরক্ষিত মেমো অপরিবর্তিত থাকবে)')) return;
+    const all = loadSE(), ed = editsOf(all, sumDay());
+    if (id.startsWith('n:')) ed.add = ed.add.filter(x => x.id !== id);
+    else { delete ed.rows[id]; if (!ed.del.includes(id)) ed.del.push(id); }
+    saveSE(all); renderSummary();
+  }
+});
+$('sumAdd').onclick = () => {
+  $('sumSearch').value = '';
+  const r = { id: 'n:' + uid(''), name: '', total: 0, parts: [{ unit: '', qty: 0 }] };
+  persistSumRow(r); renderSummary();
+  const last = $('sumRows').lastElementChild; if (last) last.querySelector('.sn').focus();
+};
+$('sumReset').onclick = () => {
+  if (!confirm('এই তারিখের সব সম্পাদনা বাদ দিয়ে মূল হিসাবে ফিরবেন?')) return;
+  const all = loadSE(); delete all[sumDay()]; saveSE(all); renderSummary();
+};
+$('sumDate').onchange = () => { commitSumEdit(); renderSummary(); };
+$('sumSearch').oninput = renderSummary;
+/* ---------- Daily summary print: always exactly ONE A4 page ----------
+   The summary is rebuilt as a print sheet and shrunk (and, for long lists, split into 2–3 columns)
+   until it fits one page. It ends with the grand total and, when there is commission, only the TOTAL commission. */
+function sumPrintHTML(rows, cols) {
+  const total = curRows.reduce((a, r) => a + r.total, 0), per = Math.ceil(rows.length / cols);
+  const tables = [...Array(cols).keys()].map(c => {
+    const part = rows.slice(c * per, (c + 1) * per); if (!part.length) return '';
+    return `<table><thead><tr><th>ক্রম</th><th>পণ্যের নাম</th><th>পরিমাণ</th><th>টাকা (৳)</th></tr></thead><tbody>${part.map((r, i) =>
+      `<tr><td class="c">${c * per + i + 1}</td><td>${esc(r.name)}</td><td class="c">${esc(r.parts.filter(p => p.qty > 0).map(p => fmt(p.qty) + (p.unit ? ' ' + p.unit : '')).join(' '))}</td><td class="r">${fmt(r.total)}</td></tr>`).join('')}</tbody></table>`;
+  }).join('');
+  return `<section class="ps"><div class="ph">দৈনিক হিসাব</div>
+    <div class="pmeta">তারিখ: ${showDate(sumDay())} · মেমো ${sumMeta.memos}টি · দোকান ${sumMeta.shops}টি · পণ্য ${rows.length}টি</div>
+    <div class="pcols" style="grid-template-columns:repeat(${cols},1fr)">${tables}</div>
+    <div class="ptot"><span>সর্বমোট (৳)</span><b>৳${fmt(total)}</b></div>
+    ${comState.has ? `<div class="ptot pcom"><span>মোট কমিশন (নিট)</span><b>${sgn(comState.net)}</b></div>` : ''}</section>`;
+}
+function buildSummaryPrint() {
+  const rows = curRows.filter(r => r.name.trim()), area = $('printArea');
+  const maxPx = 278 / 25.4 * 96; // A4 height 297mm − 2×6mm margins, minus a small safety gap, in CSS px
+  area.style.cssText = 'display:block;position:absolute;left:-99999px;top:0;width:198mm'; // off-screen, only for measuring
+  let fit = null;
+  for (const cols of [1, 2, 3, 4]) { // fewest columns whose text stays readable; more columns only for very long lists
+    for (let pt = 11; pt >= (cols === 4 ? 3 : 7); pt -= 0.25) {
+      area.innerHTML = sumPrintHTML(rows, cols); area.firstChild.style.fontSize = pt + 'pt';
+      if (area.firstChild.scrollHeight <= maxPx) { fit = { cols, pt }; break; }
+    }
+    if (fit) break;
+  }
+  if (!fit) { // absurdly long list: last resort, scale the whole sheet down so it still stays on one page
+    area.innerHTML = sumPrintHTML(rows, 4); area.firstChild.style.fontSize = '3pt';
+    const z = Math.min(1, maxPx / area.firstChild.scrollHeight); area.firstChild.style.zoom = z; fit = { cols: 4, pt: 3, zoom: z };
+  }
+  area.style.cssText = '';
+  return fit;
+}
+function printSummary() {
+  buildSummaryPrint();
+  document.body.classList.add('print-all');
+  setTimeout(() => window.print(), 50);
+}
+$('sumPrint').onclick = printSummary;
+
+/* ---------- Data layer ----------
+   Everything the SR Updates page reads goes through Repo, which today reads localStorage.
+   For a future multi-SR deployment, replace Repo's methods with calls to a cloud backend. */
+const Repo = {
+  products: () => load(KEYS.products),
+  updates: () => load(KEYS.updates),
+  addUpdate(u) { const l = load(KEYS.updates); l.push({ id: uid('u'), createdAt: Date.now(), ...u }); return save(KEYS.updates, l); },
+  removeUpdate(id) { return save(KEYS.updates, load(KEYS.updates).filter(u => u.id !== id)); }
+};
+const UPDATE_TYPES = { new: 'নতুন পণ্য', price: 'দাম পরিবর্তন', pricelist: 'নতুন মূল্যতালিকা', instruction: 'কোম্পানির নির্দেশনা', urgent: 'জরুরি নোটিশ', general: 'সাধারণ নোটিশ' };
+function fmtDT(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts), p = n => String(n).padStart(2, '0');
+  return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+/* ---------- SR Updates: sub-tabs ---------- */
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('active', x === b));
+  $('sub-pl').hidden = b.dataset.sub !== 'pl'; $('sub-feed').hidden = b.dataset.sub !== 'feed';
+});
+
+/* ---------- Current price list ---------- */
+function renderPriceList() {
+  const all = Repo.products();
+  const cats = [...new Set(all.map(p => (p.category || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'bn'));
+  const catSel = $('plCat'), cur = catSel.value;
+  catSel.hidden = !cats.length;
+  catSel.innerHTML = '<option value="">সব ক্যাটাগরি</option>' + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  catSel.value = cats.includes(cur) ? cur : '';
+  $('catList').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+  const q = norm($('plSearch').value);
+  let list = all.filter(p => norm(p.name).includes(q) && (!catSel.value || p.category === catSel.value));
+  list.sort($('plSort').value === 'latest' ? (a, b) => (b.updatedAt || 0) - (a.updatedAt || 0) : (a, b) => a.name.localeCompare(b.name, 'bn'));
+  $('plDate').textContent = 'মূল্যতালিকা — ' + fmtDT(Date.now());
+  $('plRows').innerHTML = list.length ? list.map(p => {
+    const has = p.prevPrice != null && p.prevPrice !== p.price, diff = has ? p.price - p.prevPrice : 0;
+    const badge = has ? ` <span class="badge ${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '▲ +' : '▼ −'}৳${fmt(Math.abs(diff))}</span>` : '';
+    return `<tr class="${has ? 'chg' : ''}"><td>${esc(p.name)}${p.category ? `<br><small class="pcat">${esc(p.category)}</small>` : ''}</td><td>${esc(p.unit)}</td>
+      <td><b>৳${fmt(p.price)}</b>${badge}</td><td>${p.prevPrice != null ? '৳' + fmt(p.prevPrice) : '—'}</td><td>${fmtDT(p.updatedAt)}</td></tr>`;
+  }).join('')
+    : `<tr><td colspan="5" class="empty">${all.length ? 'কোনো পণ্য পাওয়া যায়নি' : 'এখনো কোনো পণ্য নেই। "পণ্যসমূহ" পাতায় পণ্য যোগ করলে এখানে মূল্যতালিকা দেখা যাবে।'}</td></tr>`;
+}
+$('plSearch').oninput = $('plCat').onchange = $('plSort').onchange = renderPriceList;
+$('plPrint').onclick = () => window.print();
+
+/* ---------- Updates feed ---------- */
+function renderFeed() {
+  $('nType').innerHTML = Object.entries(UPDATE_TYPES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  const sel = $('nProduct'), keep = sel.value;
+  sel.innerHTML = '<option value="">— নেই —</option>' + Repo.products().map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${esc(p.unit)})</option>`).join('');
+  sel.value = keep;
+  const list = Repo.updates().sort((a, b) => b.createdAt - a.createdAt);
+  $('feedList').innerHTML = list.length ? list.map(u => `<div class="feed-item">
+    <span class="badge ${u.type === 'urgent' ? 'up' : ''}">${esc(UPDATE_TYPES[u.type] || 'সাধারণ নোটিশ')}</span>
+    <h3>${esc(u.title)}</h3>
+    ${u.details ? `<p>${esc(u.details).replace(/\n/g, '<br>')}</p>` : ''}
+    ${u.productName ? `<p>পণ্য: <b>${esc(u.productName)}</b></p>` : ''}
+    ${u.oldPrice != null && u.newPrice != null ? `<p>৳${fmt(u.oldPrice)} → <b>৳${fmt(u.newPrice)}</b></p>` : (u.type === 'new' && u.newPrice != null ? `<p>দাম: <b>৳${fmt(u.newPrice)}</b></p>` : '')}
+    <small>${fmtDT(u.createdAt)}</small>
+    ${u.manual ? `<div><button class="btn sm del" data-rm="${esc(u.id)}">মুছুন</button></div>` : ''}</div>`).join('')
+    : '<div class="empty">এখনো কোনো আপডেট নেই। পণ্য যোগ বা দাম পরিবর্তন করলে, অথবা নোটিশ লিখলে এখানে দেখা যাবে।</div>';
+}
+$('nSave').onclick = () => {
+  const title = $('nTitle').value.trim();
+  if (!title) return toast('নোটিশের শিরোনাম লিখুন');
+  const p = Repo.products().find(x => x.id === $('nProduct').value);
+  if (!Repo.addUpdate({ type: $('nType').value, title, details: $('nDetails').value.trim(), productId: p ? p.id : '', productName: p ? p.name : '', manual: true })) return;
+  $('nTitle').value = $('nDetails').value = ''; renderFeed(); toast('নোটিশ প্রকাশিত হয়েছে');
+};
+$('feedList').onclick = e => {
+  const id = e.target.dataset.rm;
+  if (id && confirm('এই নোটিশ মুছে ফেলবেন?')) { Repo.removeUpdate(id); renderFeed(); }
+};
+
+/* ---------- Settings: units ---------- */
+$('gearBtn').onclick = () => goTab('settings');
+$('unitAdd').onclick = () => {
+  const v = $('unitNew').value.trim();
+  if (!v) return toast('একক লিখুন');
+  const l = getUnits();
+  if (l.some(u => norm(u) === norm(v))) return toast('এই একক আগেই আছে');
+  l.push(v);
+  if (!setUnits(l)) return;
+  $('unitNew').value = ''; renderUnits(); toast('একক যোগ হয়েছে');
+};
+$('unitNew').addEventListener('keydown', e => { if (e.key === 'Enter') $('unitAdd').click(); });
+$('unitItems').onclick = e => {
+  const i = e.target.dataset.ui; if (i == null) return;
+  const l = getUnits(); if (!confirm('"' + l[i] + '" একক মুছে ফেলবেন? পুরনো মেমো অপরিবর্তিত থাকবে।')) return;
+  l.splice(+i, 1); setUnits(l); renderUnits();
+};
+$('perPage').value = getPerPage();
+$('perPage').onchange = () => { try { localStorage.setItem('khata_perpage', $('perPage').value); } catch (e) {} toast('সংরক্ষিত হয়েছে'); };
+$('unitReset').onclick =() => { if (confirm('একক তালিকা ডিফল্টে ফিরিয়ে নেবেন?')) { setUnits(DEFAULT_UNITS.slice()); renderUnits(); } };
+
+/* One-time cleanup: removes any leftover demo records (ids starting with "demo_") from earlier testing. Your own data is never touched. */
+(function () {
+  try {
+    let found = false;
+    [KEYS.products, KEYS.memos, KEYS.shops, KEYS.updates].forEach(k => {
+      const l = load(k), keep = l.filter(x => !String((x && x.id) || '').startsWith('demo_'));
+      if (keep.length !== l.length) { found = true; save(k, keep); }
+    });
+    if (found) { // also drop daily-summary edits for days that no longer have any memo
+      const memos = load(KEYS.memos), all = loadSE();
+      Object.keys(all).forEach(d => { if (!memos.some(m => m.date === d)) delete all[d]; });
+      saveSE(all);
+    }
+    localStorage.removeItem('khata_demo_seeded');
+  } catch (e) {}
+})();
+
+/* ---------- Date fields: always shown as দিন/মাস/বছর (dd/mm/yyyy) ----------
+   The native date input stays (invisible, on top) so the picker still opens;
+   a read-only text box underneath shows the date in dd/mm/yyyy. */
+function enhanceDate(inp) {
+  const wrap = document.createElement('div');
+  wrap.className = 'dt' + (inp.classList.contains('grow') ? ' grow' : '');
+  inp.parentNode.insertBefore(wrap, inp);
+  const show = document.createElement('input');
+  show.type = 'text'; show.readOnly = true; show.className = 'dtshow'; show.placeholder = 'দিন/মাস/বছর'; show.tabIndex = -1;
+  wrap.append(show, inp); inp.classList.add('dtreal'); inp.classList.remove('grow');
+  const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const sync = () => { show.value = inp.value ? showDate(inp.value) : ''; };
+  Object.defineProperty(inp, 'value', { get() { return desc.get.call(inp); }, set(v) { desc.set.call(inp, v); sync(); } });
+  inp.addEventListener('input', sync); inp.addEventListener('change', sync);
+  inp.addEventListener('click', () => { try { inp.showPicker(); } catch (e) {} });
+  sync();
+}
+['memoDate', 'savedDate', 'sumDate'].forEach(id => enhanceDate($(id)));
+
+/* ---------- Init ---------- */
+$('sumDate').value = todayStr();
+$('savedDate').value = todayStr();
+renderShops(); renderProducts(); renderPriceList(); resetMemo(); renderUnits();
+</script>
+</body>
+</html>
